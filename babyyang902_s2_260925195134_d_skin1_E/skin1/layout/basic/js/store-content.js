@@ -139,7 +139,7 @@ window.STORE_CONTENT = {
 
 	/* 푸터 SHOP MENU 4개 링크 (게시판 주소는 몰마다 다릅니다)      BUYER EDITABLE */
 	footerMenu: [
-		{ label: 'Shop',   link: '/product/list.html?cate_no=42' },
+		{ label: 'Shop',   link: '/product/list.html?cate_no=28' },
 		{ label: 'Order',  link: '/myshop/order/list.html' },
 		{ label: 'Q&A',    link: '/board/product/list.html?board_no=6' },
 		{ label: 'Notice', link: '/board/product/list.html?board_no=1' }
@@ -154,7 +154,7 @@ window.STORE_CONTENT = {
 		title: '에어 레깅스',
 		sub: '210g. 입은 줄 모르게.',
 		buttonText: '컬렉션 보기',
-		buttonLink: '/product/list.html?cate_no=42',
+		buttonLink: '/product/list.html?cate_no=28',
 		image: '/SkinImg/baby/scene-sleep-linen.webp',
 		imageMobile: '/SkinImg/baby/scene-sleep-linen.webp'
 	},
@@ -165,7 +165,7 @@ window.STORE_CONTENT = {
 	   --------------------------------------------------------------------- */
 	arrivals: {
 		seeAllText: 'SEE ALL',
-		seeAllLink: '/product/list.html?cate_no=42'
+		seeAllLink: '/product/list.html?cate_no=28'
 	},
 
 	/* ---------------------------------------------------------------------
@@ -193,7 +193,7 @@ window.STORE_CONTENT = {
 		titleHtml: '원단부터<br>다시 만들었습니다',
 		desc: '겉감은 회복력이 좋은 나일론, 안감은 땀을 빨리 내보내는 구조로 짰습니다. 같은 패턴을 세 시즌째 다듬는 이유입니다.',
 		buttonText: '소재 이야기 읽기',
-		buttonLink: '/product/list.html?cate_no=42'
+		buttonLink: '/product/list.html?cate_no=28'
 	},
 
 	/* ---------------------------------------------------------------------
@@ -426,7 +426,7 @@ window.STORE_CONTENT = {
   c.brand.instagramHandle = '';
   c.intro = {enabled: false};
   c.hero = {tag:'LITTLE DAYS', title:'아이와 함께하는 일상', sub:'더 좋은 것들로.',
-    buttonText:'컬렉션 보기', buttonLink:'/product/list.html?cate_no=42', image:base+'scene-sleep-linen.webp', imageMobile:base+'scene-sleep-linen.webp'};
+    buttonText:'컬렉션 보기', buttonLink:'/product/list.html?cate_no=28', image:base+'scene-sleep-linen.webp', imageMobile:base+'scene-sleep-linen.webp'};
   c.onStore.hoverImages = ['scene-swing.webp','scene-blocks.webp','scene-highchair.webp','sq-sleep.webp'].map(function (s) {return base+s});
   c.fabric = {image:base+'sq-sleep.webp', eyebrow:'SLEEP & LIVING', titleHtml:'편안한 하루의<br>시작과 끝',
     desc:'조용한 공간, 몸을 펼칠 수 있는 크기, 관리하기 편한 소재. 우리 아이가 자는 자리를 생각합니다.',

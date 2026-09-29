@@ -1,7 +1,7 @@
 <section class="baby-page-hero baby-menu-hero" aria-label="컬렉션 안내">
  <img src="/SkinImg/baby/scene-nursery.webp" alt="햇살 드는 아기 방" width="1600" height="900" fetchpriority="high">
  <div><small>THE EVERYDAY COLLECTION</small><h1>Good things.<br>For little ones.</h1><p>함께 먹고, 놀고, 자는 하루.<br>우리 아이의 일상에 어울리는 것을 찾아보세요.</p>
- <nav aria-label="컬렉션 메뉴"><a data-baby-menu="all" href="/product/list.html?cate_no=42">전체상품</a><a data-baby-menu="newborn" href="/product/list.html?cate_no=24">신생아</a><a data-baby-menu="toddler" href="/product/list.html?cate_no=25">걸음마 아기</a><a data-baby-menu="outing" href="/product/list.html?cate_no=26">외출/나들이</a><a data-baby-menu="review" href="/board/product/list.html?board_no=4">리뷰</a></nav></div>
+ <nav aria-label="컬렉션 메뉴"><a data-baby-menu="all" href="/product/list.html?cate_no=28">전체상품</a><a data-baby-menu="newborn" href="/product/list.html?cate_no=24">신생아</a><a data-baby-menu="toddler" href="/product/list.html?cate_no=25">걸음마 아기</a><a data-baby-menu="outing" href="/product/list.html?cate_no=26">외출/나들이</a><a data-baby-menu="review" href="/board/product/list.html?board_no=4">리뷰</a></nav></div>
 </section>
 <!-- 상품분류 목록에서만 보이는 검색창 (상품검색 페이지는 자체 검색창이 있다) -->
 <form class="baby-list-search" action="/product/search.html" method="get" role="search" hidden>
@@ -21,7 +21,7 @@
  // SALE(27)은 전용 세일 화면이 따로 있다
  if(list&&cate==='27'){hero.remove();return;}
  // 상품분류 번호 : 24 신생아 · 25 걸음마 아기 · 26 외출/나들이 (관리자 대분류)
- var byCate={'42':'all','24':'newborn','25':'toddler','26':'outing'};
+ var byCate={'28':'all','24':'newborn','25':'toddler','26':'outing'};
  var key=board?boardKey:list?(byCate[cate]||'all'):/외출|나들이|유모차|카시트/.test(word)?'outing':/유아|걸음마|토들러/.test(word)?'toddler':/신생아|배냇|속싸개/.test(word)?'newborn':'all';
  var data={
   all:['scene-nursery.webp','햇살 드는 아기 방','THE EVERYDAY COLLECTION','Good things.<br>For little ones.','함께 먹고, 놀고, 자는 하루.<br>우리 아이의 일상에 어울리는 것을 찾아보세요.'],

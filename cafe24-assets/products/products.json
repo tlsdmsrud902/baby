@@ -1,11 +1,11 @@
 {
- "note": "baby앙 샘플 상품. 카페24 관리자 > 상품 등록에 복사해 쓰세요. cates : 24 신생아 · 25 걸음마 아기 · 26 외출/나들이 · 27 SALE (모든 상품은 42 전체 상품에도 넣기). group : rec = 메인 추천(진열 1) · new = 신상품(진열 2) · best = 인기(진열 3). retail 이 있는 상품은 소비자가(정상가)로 넣고 price 를 판매가로 넣으면 할인율이 표시됩니다.",
+ "note": "baby앙 샘플 상품. 카페24 관리자 > 상품 등록에 복사해 쓰세요. cates : 24 신생아 · 25 걸음마 아기 · 26 외출/나들이 · 27 SALE (모든 상품은 28 전체 상품에도 넣기). group : rec = 메인 추천상품(진열번호 2) · new = 신상품(3) · best = 인기상품(추가카테고리1, 4). retail 이 있는 상품은 소비자가(정상가)로 넣고 price 를 판매가로 넣으면 할인율이 표시됩니다.",
  "categories": {
   "24": "신생아",
   "25": "걸음마 아기",
   "26": "외출/나들이",
   "27": "SALE",
-  "42": "전체 상품"
+  "28": "전체 상품"
  },
  "products": [
   {
@@ -279,6 +279,74 @@
    "price": 21000,
    "retail": 26000,
    "img": "p24.jpg"
+  },
+  {
+   "code": "p25",
+   "group": "new",
+   "cates": [
+    24
+   ],
+   "name": "코튼 누빔 곰돌이 우주복",
+   "price": 45000,
+   "retail": null,
+   "img": "p25.jpg"
+  },
+  {
+   "code": "p26",
+   "group": "best",
+   "cates": [
+    25
+   ],
+   "name": "첫 그림책 보드북 세트",
+   "price": 32000,
+   "retail": null,
+   "img": "p26.jpg"
+  },
+  {
+   "code": "p27",
+   "group": "new",
+   "cates": [
+    24
+   ],
+   "name": "곰돌이 귀 플리스 점프슈트",
+   "price": 52000,
+   "retail": null,
+   "img": "p27.jpg"
+  },
+  {
+   "code": "p28",
+   "group": "best",
+   "cates": [
+    24,
+    27
+   ],
+   "name": "뽀글이 곰돌이 후드 롬퍼",
+   "price": 38000,
+   "retail": 46000,
+   "img": "p28.jpg"
+  },
+  {
+   "code": "p29",
+   "group": "best",
+   "cates": [
+    26
+   ],
+   "name": "원목 아기 그네",
+   "price": 98000,
+   "retail": null,
+   "img": "p29.jpg"
+  },
+  {
+   "code": "p30",
+   "group": "new",
+   "cates": [
+    26,
+    27
+   ],
+   "name": "꽃무늬 거즈 원피스",
+   "price": 36000,
+   "retail": 43000,
+   "img": "p30.jpg"
   }
  ]
 }

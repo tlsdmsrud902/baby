@@ -132,10 +132,10 @@ html.st-sale-on #contents :is(.sl-cp__btn,.sl-btn){border-radius:999px!important
 #header .inner .top_nav_box .top_logo a::before,#header .inner .top_nav_box .top_logo a::after,#footer .bt_logo a::before,#footer .bt_logo a::after{content:none!important;display:none!important}
 #header .top_logo a,#footer .bt_logo a{display:inline-flex!important;align-items:center;line-height:0;font-size:0}
 #header .inner .top_nav_box .top_logo a img.baby-logo-img,#footer .bt_logo a img.baby-logo-img{display:block!important}
-.baby-logo-img{display:block;width:auto!important;max-width:none;height:26px}
-#footer .baby-logo-img{height:32px}
-@media (max-width:1024px){#header .baby-logo-img{height:24px}}
-@media (max-width:767px){#header .baby-logo-img{height:20px}#footer .baby-logo-img{height:28px}}
+.baby-logo-img{display:block;width:auto!important;max-width:none;height:20px}
+#footer .baby-logo-img{height:24px}
+@media (max-width:1024px){#header .baby-logo-img{height:18px}}
+@media (max-width:767px){#header .baby-logo-img{height:16px}#footer .baby-logo-img{height:20px}}
 
 /* 세일 쿠폰 카드 등장 : 세 장이 한 벌로 반듯하게 겹친 채 아래에서 올라오고(stage-1), 부채처럼 펼쳐진다(stage-2). 반투명 구간 없음 */
 html.st-sale-on #contents .sl-cp__card:nth-child(1){--d2:.1s}

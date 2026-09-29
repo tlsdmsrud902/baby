@@ -703,3 +703,10 @@ html.cz-qv-open{overflow:hidden}
 html:has(#lw-home){overflow-x:hidden;overflow-x:clip}
 #wrap:has(#lw-home),#lw-home.baby-cozy{overflow:visible!important}
 #lw-home #cz-new.cz-reveal{transform:none!important}
+
+
+/* 게시판 화면 관리 (baby-cms.js)
+   · 게시판 글에서 "보이기: 아니오" 로 끈 영역 (편집 모드 ?edit=1 에서는 흐린 막을 씌워 보여 준다)
+   · 첫 방문에 게시판 내용을 읽는 동안(최대 1.2초) 바뀔 글자·사진을 잠깐 가려 기본값이 번쩍이지 않게 한다 */
+html:not(.cms-edit) .cms-off{display:none!important}
+.cms-wait [data-cms] [data-cms-text],.cms-wait [data-cms] [data-cms-src],.cms-wait [data-cms] [data-cms-links]{visibility:hidden}

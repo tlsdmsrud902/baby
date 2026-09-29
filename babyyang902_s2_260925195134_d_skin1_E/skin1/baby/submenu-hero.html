@@ -1,4 +1,4 @@
-<section class="baby-page-hero baby-menu-hero" aria-label="컬렉션 안내">
+<section class="baby-page-hero baby-menu-hero" aria-label="컬렉션 안내" data-cms="목록 위 큰 배너" data-cms-adapter="menuHero" data-cms-page="목록 공통">
  <img src="/SkinImg/baby/scene-nursery.webp" alt="햇살 드는 아기 방" width="1600" height="900" fetchpriority="high">
  <div><small>THE EVERYDAY COLLECTION</small><h1>Good things.<br>For little ones.</h1><p>함께 먹고, 놀고, 자는 하루.<br>우리 아이의 일상에 어울리는 것을 찾아보세요.</p>
  <nav aria-label="컬렉션 메뉴"><a data-baby-menu="all" href="/product/list.html?cate_no=28">전체상품</a><a data-baby-menu="newborn" href="/product/list.html?cate_no=24">신생아</a><a data-baby-menu="toddler" href="/product/list.html?cate_no=25">걸음마 아기</a><a data-baby-menu="outing" href="/product/list.html?cate_no=26">외출/나들이</a><a data-baby-menu="review" href="/board/product/list.html?board_no=4">리뷰</a></nav></div>
@@ -23,7 +23,8 @@
  // 상품분류 번호 : 24 신생아 · 25 걸음마 아기 · 26 외출/나들이 (관리자 대분류)
  var byCate={'28':'all','24':'newborn','25':'toddler','26':'outing'};
  var key=board?boardKey:list?(byCate[cate]||'all'):/외출|나들이|유모차|카시트/.test(word)?'outing':/유아|걸음마|토들러/.test(word)?'toddler':/신생아|배냇|속싸개/.test(word)?'newborn':'all';
- var data={
+ // 배너 내용 : 게시판 화면 관리의 '목록 위 큰 배너' 글로 바꿀 수 있다 (baby-cms.js 가 window.BABYANG_MENU_HERO 를 덮어쓴다)
+ var banners=window.BABYANG_MENU_HERO=window.BABYANG_MENU_HERO||{
   all:['scene-nursery.webp','햇살 드는 아기 방','THE EVERYDAY COLLECTION','Good things.<br>For little ones.','함께 먹고, 놀고, 자는 하루.<br>우리 아이의 일상에 어울리는 것을 찾아보세요.'],
   newborn:['scene-sleep-white.webp','하얀 담요 위에서 자는 신생아','THE NEWBORN COLLECTION','Tiny hands.<br>Softest things.','처음 입는 옷부터 포근한 잠자리까지.<br>갓 태어난 아기를 위한 다정한 선택.'],
   toddler:['scene-blocks.webp','언니와 함께 원목 블록을 쌓는 아기','THE TODDLER COLLECTION','Little explorers.<br>Big curiosity.','잡고, 쌓고, 걸어 보는 하루.<br>호기심 많은 걸음마 아기를 위한 일상.'],
@@ -32,10 +33,14 @@
   notice:['scene-reading.webp','소파에서 형과 함께 그림책을 보는 아기','NEWS & NOTICE','Little news.<br>From baby앙.','baby앙의 새로운 소식과<br>꼭 알아 두실 안내를 전해 드려요.'],
   faq:['scene-reading.webp','소파에서 형과 함께 그림책을 보는 아기','GOOD TO KNOW','Questions?<br>We have answers.','주문 · 배송 · 교환 · 반품에 대해<br>자주 묻는 질문을 모았어요.'],
   qna:['scene-reading.webp','소파에서 형과 함께 그림책을 보는 아기','ASK US','Ask anything.<br>We are here to help.','상품에 대해 궁금한 점을 남겨 주세요.<br>꼼꼼히 확인하고 답변드릴게요.']
- }[key],img=hero.querySelector('img');
- hero.dataset.collection=key;img.alt=data[1];hero.querySelector('small').textContent=data[2];hero.querySelector('h1').innerHTML=data[3];hero.querySelector('p').innerHTML=data[4];
+ },img=hero.querySelector('img');
  function reveal(){hero.classList.add('is-ready')}
- img.addEventListener('load',reveal,{once:true});img.addEventListener('error',reveal,{once:true});img.src='/SkinImg/baby/'+data[0];if(img.complete&&img.naturalWidth)reveal();
+ function fill(){
+  var data=banners[key]||banners.all;
+  hero.dataset.collection=key;img.alt=data[1];hero.querySelector('small').textContent=data[2];hero.querySelector('h1').innerHTML=data[3];hero.querySelector('p').innerHTML=data[4];
+  img.addEventListener('load',reveal,{once:true});img.addEventListener('error',reveal,{once:true});img.src=/^(https?:)?\/\/|^\//.test(data[0])?data[0]:'/SkinImg/baby/'+data[0];if(img.complete&&img.naturalWidth)reveal();
+ }
+ if(window.BABYANG_CMS)window.BABYANG_CMS.ready(fill,1200);else fill();
  var cur=hero.querySelector('[data-baby-menu="'+key+'"]');if(cur)cur.setAttribute('aria-current','page');
  var form=document.querySelector('.baby-list-search');if(form&&list)form.hidden=false;
 }());

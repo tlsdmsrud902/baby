@@ -78,6 +78,15 @@
       newborn: ['배냇저고리와 내의', '속싸개와 겉싸개', '젖병과 세정 용품', '기저귀와 물티슈', '아기 침대와 침구', '카시트'],
       toddler: ['이유식 식기와 스푼', '빨대컵', '턱받이', '걸음마 신발', '안전문과 모서리 보호대', '월령에 맞는 장난감']
     };
+    // 준비물 목록은 HTML 의 [data-starter-items] (게시판 화면 관리로 바꿀 수 있다)
+    function readItems() {
+      root.querySelectorAll('[data-starter-items]').forEach(function (el) {
+        var list = el.textContent.split('\n').map(function (t) { return t.trim(); }).filter(Boolean);
+        if (list.length) items[el.getAttribute('data-starter-items')] = list;
+      });
+      ['newborn', 'toddler'].forEach(function (k) { saved[k] = saved[k].filter(function (n) { return n < items[k].length; }); });
+    }
+    readItems();
     function update() {
       var done = saved[baby].length, total = items[baby].length;
       try { localStorage.setItem('babyang-starter-v1', JSON.stringify(saved)); } catch (e) { persisted = false; }
@@ -107,6 +116,7 @@
       });
     });
     root.querySelector('[data-starter-reset]').addEventListener('click', function () { saved[baby] = []; render(); });
+    document.addEventListener('babyang:cms', function () { readItems(); render(); });
     render();
   }
 
@@ -328,7 +338,10 @@
     var pop = document.getElementById('cz-pop');
     if (!pop) return;
     var KEY = 'babyang-pop-hide-until';
-    try { if (Number(localStorage.getItem(KEY)) > Date.now()) return; } catch (e) {}
+    var editing = /[?&]edit=1/.test(location.search); // 편집 모드에서는 '오늘 하루 닫기'와 상관없이 띄운다
+    try { if (!editing && Number(localStorage.getItem(KEY)) > Date.now()) return; } catch (e) {}
+    // 게시판 화면 관리(baby-cms.js)의 '이벤트 팝업' 글이 들어온 뒤에 그린다
+    if (window.BABYANG_CMS && !pop.__cmsWaited) { pop.__cmsWaited = true; window.BABYANG_CMS.ready(initPopup, 900); return; }
     var SC = window.STORE_CONTENT || {}, cfg = SC.popup;
     if (cfg && cfg.enabled === false) return;
     var track = pop.querySelector('.cz-pop__track');
@@ -474,18 +487,20 @@
         return (avg ? '<b>★ ' + avg.toFixed(1) + '</b> · ' : '') + '리뷰 ' + list.length;
       } catch (e) { return ''; }
     }
+    // 상품 사진 : 목록 데이터는 파일 이름, 게시판 화면 관리로 추가한 상품(baby-cms.js 가 채움)은 전체 주소
+    var imgUrl = function (p) { return /^(https?:)?\/\//.test(p.img) ? p.img : IMG + p.img + '.webp'; };
     function openQV(no, from) {
-      var p = data[no];
-      if (!p || !qv) return;
+      var p = data[no] || (window.BABYANG_PRODUCTS || {})[no];
+      if (!p || !qv) { if (no) location.href = '/product/detail.html?product_no=' + no; return; }
       lastBtn = from || null;
       var img = qv.querySelector('.cz-qv__img img');
-      img.src = IMG + p.img + '.webp'; img.alt = p.name;
-      qv.querySelector('.cz-qv__cat').textContent = p.cat;
+      img.src = imgUrl(p); img.alt = p.name;
+      qv.querySelector('.cz-qv__cat').textContent = p.cat || '';
       qv.querySelector('#cz-qv-name').textContent = p.name;
       qv.querySelector('.cz-qv__price').innerHTML = p.retail
         ? '<em>' + Math.round((1 - p.price / p.retail) * 100) + '%</em><b>' + won(p.price) + '</b><s>' + won(p.retail) + '</s>'
         : '<b>' + won(p.price) + '</b>';
-      qv.querySelector('.cz-qv__desc').textContent = p.desc;
+      qv.querySelector('.cz-qv__desc').textContent = p.desc || '';
       var rv = qv.querySelector('.cz-qv__review'), r = reviewOf(no);
       rv.innerHTML = r; rv.hidden = !r;
       var url = '/product/detail.html?product_no=' + no;
@@ -501,11 +516,13 @@
       html.classList.remove('cz-qv-open');
       if (lastBtn) lastBtn.focus({ preventScroll: true });
     }
-    sec.querySelectorAll('[data-prd]').forEach(function (b) {
-      b.addEventListener('click', function () { openQV(b.dataset.prd, b); });
+    // 점·목록은 게시판 화면 관리로 다시 그려질 수 있어 섹션에서 한 번에 받는다
+    sec.addEventListener('click', function (e) {
+      var b = e.target.closest && e.target.closest('[data-prd]');
+      if (b && sec.contains(b) && !document.documentElement.classList.contains('cms-edit')) openQV(b.dataset.prd, b);
     });
     // 섹션에 가까워지면 레이어에 쓸 상품 사진을 미리 받아 둔다 (처음 열 때 빈 칸 방지)
-    var preload = function () { Object.keys(data).forEach(function (k) { new Image().src = IMG + data[k].img + '.webp'; }); };
+    var preload = function () { Object.keys(data).forEach(function (k) { new Image().src = imgUrl(data[k]); }); };
     if ('IntersectionObserver' in window) {
       var pio = new IntersectionObserver(function (es) { if (es[0].isIntersecting) { pio.disconnect(); preload(); } }, { rootMargin: '800px 0px' });
       pio.observe(sec);
@@ -602,6 +619,7 @@
   function init() {
     var root = document.querySelector('.baby-cozy');
     if (!root) return;
+    if (window.BABYANG_CMS) window.BABYANG_CMS.applyCached(); // 게시판으로 바꾼 사진·글자를 인터랙션보다 먼저 넣는다
     initHeadLine();
     initWorldHero(root);
     initWorld(root);

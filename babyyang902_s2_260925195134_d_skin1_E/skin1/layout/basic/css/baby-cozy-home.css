@@ -444,7 +444,7 @@ body:has(#lw-home.baby-cozy) :is(.xans-layout-mobileaction,#contents>[module=Lay
 /* 16. 브랜드 각인 : 크림 바탕 위 baby앙 글자 이미지. 글자 아랫단이 푸터 윗선에 닿는다. */
 #lw-home.baby-cozy{padding-bottom:0}
 body:has(#lw-home.baby-cozy) :is(#footer,.footer_margin){margin-top:0!important}
-#lw-home .cz-brand{position:relative;overflow:hidden;margin-top:clamp(80px,9vw,128px);padding-bottom:clamp(28px,3.5vw,56px);background:linear-gradient(180deg,rgba(246,237,226,0) 0%,rgba(246,237,226,0) 38%,rgba(246,237,226,.55) 70%,var(--cz-oat,#f6ede2) 100%)}
+#lw-home .cz-brand{position:relative;overflow:hidden;margin-top:clamp(80px,9vw,128px);padding-top:clamp(40px,5vw,72px);padding-bottom:clamp(28px,3.5vw,56px);background:#fcf6eb}
 #lw-home .cz-brand__top{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;width:min(1440px,calc(100% - var(--cz-gutter)*2));margin:0 auto}
 #lw-home .cz-brand__title{font-size:clamp(20px,1.9vw,28px);font-weight:700;line-height:1.45;letter-spacing:-.045em;color:var(--cz-ink)}
 #lw-home .cz-brand__sub{margin-top:10px;font-size:15px;line-height:1.7;color:var(--cz-muted)}

@@ -1,0 +1,284 @@
+{
+ "note": "baby앙 샘플 상품. 카페24 관리자 > 상품 등록에 복사해 쓰세요. cates : 24 신생아 · 25 걸음마 아기 · 26 외출/나들이 · 27 SALE (모든 상품은 42 전체 상품에도 넣기). group : rec = 메인 추천(진열 1) · new = 신상품(진열 2) · best = 인기(진열 3). retail 이 있는 상품은 소비자가(정상가)로 넣고 price 를 판매가로 넣으면 할인율이 표시됩니다.",
+ "categories": {
+  "24": "신생아",
+  "25": "걸음마 아기",
+  "26": "외출/나들이",
+  "27": "SALE",
+  "42": "전체 상품"
+ },
+ "products": [
+  {
+   "code": "p01",
+   "group": "rec",
+   "cates": [
+    24
+   ],
+   "name": "린넨 거즈 속싸개",
+   "price": 32000,
+   "retail": null,
+   "img": "p01.jpg"
+  },
+  {
+   "code": "p02",
+   "group": "rec",
+   "cates": [
+    24,
+    27
+   ],
+   "name": "순면 배냇저고리 세트",
+   "price": 28000,
+   "retail": 35000,
+   "img": "p02.jpg"
+  },
+  {
+   "code": "p03",
+   "group": "new",
+   "cates": [
+    24
+   ],
+   "name": "곰돌이 후드 우주복",
+   "price": 39000,
+   "retail": null,
+   "img": "p03.jpg"
+  },
+  {
+   "code": "p04",
+   "group": "best",
+   "cates": [
+    24,
+    27
+   ],
+   "name": "토끼 모자 바디슈트",
+   "price": 36000,
+   "retail": 45000,
+   "img": "p04.jpg"
+  },
+  {
+   "code": "p05",
+   "group": "rec",
+   "cates": [
+    24,
+    27
+   ],
+   "name": "니트 토끼 애착 인형",
+   "price": 15000,
+   "retail": 18000,
+   "img": "p05.jpg"
+  },
+  {
+   "code": "p06",
+   "group": "best",
+   "cates": [
+    24
+   ],
+   "name": "오가닉 코튼 니트 담요",
+   "price": 69000,
+   "retail": null,
+   "img": "p06.jpg"
+  },
+  {
+   "code": "p07",
+   "group": "new",
+   "cates": [
+    24
+   ],
+   "name": "원목 아기 침대",
+   "price": 189000,
+   "retail": null,
+   "img": "p07.jpg"
+  },
+  {
+   "code": "p08",
+   "group": "new",
+   "cates": [
+    24
+   ],
+   "name": "꽃무늬 거즈 바디슈트",
+   "price": 32000,
+   "retail": null,
+   "img": "p08.jpg"
+  },
+  {
+   "code": "p09",
+   "group": "rec",
+   "cates": [
+    25
+   ],
+   "name": "원목 액티비티 큐브",
+   "price": 58000,
+   "retail": null,
+   "img": "p09.jpg"
+  },
+  {
+   "code": "p10",
+   "group": "best",
+   "cates": [
+    25,
+    27
+   ],
+   "name": "원목 쌓기 블록 세트",
+   "price": 19000,
+   "retail": 24000,
+   "img": "p10.jpg"
+  },
+  {
+   "code": "p11",
+   "group": "rec",
+   "cates": [
+    25
+   ],
+   "name": "원목 동물 자동차",
+   "price": 18000,
+   "retail": null,
+   "img": "p11.jpg"
+  },
+  {
+   "code": "p12",
+   "group": "new",
+   "cates": [
+    25
+   ],
+   "name": "파스텔 링 쌓기 장난감",
+   "price": 16000,
+   "retail": null,
+   "img": "p12.jpg"
+  },
+  {
+   "code": "p13",
+   "group": "best",
+   "cates": [
+    25
+   ],
+   "name": "원목 하이체어",
+   "price": 129000,
+   "retail": null,
+   "img": "p13.jpg"
+  },
+  {
+   "code": "p14",
+   "group": "rec",
+   "cates": [
+    25,
+    27
+   ],
+   "name": "흡착 이유식 식기 세트",
+   "price": 24000,
+   "retail": 29000,
+   "img": "p14.jpg"
+  },
+  {
+   "code": "p15",
+   "group": "new",
+   "cates": [
+    25
+   ],
+   "name": "원목 유아 의자",
+   "price": 45000,
+   "retail": null,
+   "img": "p15.jpg"
+  },
+  {
+   "code": "p16",
+   "group": "best",
+   "cates": [
+    25
+   ],
+   "name": "원목 그림책 선반",
+   "price": 68000,
+   "retail": null,
+   "img": "p16.jpg"
+  },
+  {
+   "code": "p17",
+   "group": "rec",
+   "cates": [
+    26
+   ],
+   "name": "소프트 걸음마 슈즈",
+   "price": 24000,
+   "retail": null,
+   "img": "p17.jpg"
+  },
+  {
+   "code": "p18",
+   "group": "rec",
+   "cates": [
+    26
+   ],
+   "name": "꽃자수 코튼 니트 가디건",
+   "price": 29000,
+   "retail": null,
+   "img": "p18.jpg"
+  },
+  {
+   "code": "p19",
+   "group": "best",
+   "cates": [
+    26,
+    27
+   ],
+   "name": "노란 우비 & 장화 세트",
+   "price": 42000,
+   "retail": 52000,
+   "img": "p19.jpg"
+  },
+  {
+   "code": "p20",
+   "group": "new",
+   "cates": [
+    26
+   ],
+   "name": "니트 귀달이 모자",
+   "price": 19000,
+   "retail": null,
+   "img": "p20.jpg"
+  },
+  {
+   "code": "p21",
+   "group": "best",
+   "cates": [
+    26,
+    27
+   ],
+   "name": "곰돌이 플리스 점퍼",
+   "price": 49000,
+   "retail": 59000,
+   "img": "p21.jpg"
+  },
+  {
+   "code": "p22",
+   "group": "new",
+   "cates": [
+    26
+   ],
+   "name": "리넨 멜빵 롬퍼",
+   "price": 34000,
+   "retail": null,
+   "img": "p22.jpg"
+  },
+  {
+   "code": "p23",
+   "group": "rec",
+   "cates": [
+    26
+   ],
+   "name": "꽃 헤어핀 세트",
+   "price": 9000,
+   "retail": null,
+   "img": "p23.jpg"
+  },
+  {
+   "code": "p24",
+   "group": "rec",
+   "cates": [
+    26,
+    27
+   ],
+   "name": "라탄 피크닉 소꿉놀이 세트",
+   "price": 21000,
+   "retail": 26000,
+   "img": "p24.jpg"
+  }
+ ]
+}

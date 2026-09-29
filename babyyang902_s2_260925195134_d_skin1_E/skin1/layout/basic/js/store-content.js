@@ -37,7 +37,7 @@ window.STORE_CONTENT = {
 	menu: {
 		parentCateNo: 1,
 		saleBadge: '50%',  // 상단 메뉴 SALE 위 말풍선 글자 (비우면 50%)
-		editorial: false   // true 면 코드에 적어 둔 고정 메뉴, false 면 관리자 대분류로 메뉴를 만든다
+		editorial: true    // true 면 코드에 적어 둔 고정 메뉴(header.html), false 면 관리자 대분류로 메뉴를 만든다
 	},
 
 	/* 상단 메뉴 맨 끝의 COMMUNITY — 마우스를 올리면 게시판 4개가 드롭다운으로 나옵니다.  BUYER EDITABLE

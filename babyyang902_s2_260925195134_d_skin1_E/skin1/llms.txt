@@ -7,7 +7,7 @@ The LLM must adhere to all the rules below.
 ---
  
 1. Basic Site Information
-- Main Home URL: `https://NEWID.cafe24.com`
+- Main Home URL: `https://babyyang902.cafe24.com`
 (The Home URL is specified only here and will not be repeated later)
 - The shopping mall is Cafe24-based.
 - URL folders by language (e.g., `/en`) do not exist, but language-specific shopping malls (e.g., `/shop2`, `/shop3`) may be linked and operated via `hreflang` tags.
@@ -36,7 +36,7 @@ Basic Structure
 Product Detail URL
 Cafe24 supports both types of product URL structures.
 - Standard Type (Traditional):`/product/detail.html?product_no={product_no}`
-- Slug-Included Type (SEO Friendly URL):`https://NEWID.cafe24.com/product/{product-name-slug}/{product_no}/category/{cate_no}/display/{display_no}/`
+- Slug-Included Type (SEO Friendly URL):`https://babyyang902.cafe24.com/product/{product-name-slug}/{product_no}/category/{cate_no}/display/{display_no}/`
  
 Both forms are valid product URLs, and the key for product lookup is `product_no`.
 Other Key Pages

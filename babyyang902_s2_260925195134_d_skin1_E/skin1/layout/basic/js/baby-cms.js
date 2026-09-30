@@ -867,11 +867,13 @@
     if (EDIT && home) startEdit();
     if (BOARD_PAGE) loadEditor();
   }
-  // 캐시가 없는 첫 방문에는 바꿀 글자·사진을 잠깐(최대 1.2초) 가려 기본값이 번쩍이지 않게 한다
+  // 바꿀 글자·사진은 게시판 내용(캐시 또는 새로 읽은 글)이 들어갈 때까지 가려 수정 전 기본값이 번쩍이지 않게 한다
+  //  · 캐시가 있으면 applyCached() 가 곧바로 걷어 낸다
+  //  · 캐시가 없거나(첫 방문 · 저장 직후) 편집 모드면 게시판을 다 읽은 뒤 걷어 낸다 — 게시판이 늦거나 막히면 최대 6초
   var salePage = /\/product\/list\.html/.test(location.pathname) && (qs.match(/[?&]cate_no=(\d+)/) || [])[1] === String((SC.sale || {}).categoryNo || 27);
-  if (BOARD && !EDIT && (/^\/(index\.html)?$/.test(location.pathname) || salePage) && !(lsGet(CACHE_KEY) || {}).map) {
+  if (BOARD && (/^\/(index\.html)?$/.test(location.pathname) || salePage)) {
     html.classList.add('cms-wait');
-    setTimeout(function () { html.classList.remove('cms-wait'); }, 1200);
+    setTimeout(function () { html.classList.remove('cms-wait'); }, 6000);
   }
   // 영역 숨기기·첫 방문 가림 규칙 (메인·세일 등 어느 페이지에서나)
   if (BOARD && document.head) {

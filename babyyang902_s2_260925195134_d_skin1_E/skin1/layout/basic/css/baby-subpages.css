@@ -6,6 +6,8 @@
 .baby-menu-hero nav a[aria-current=page]{background:#304234;border-color:#304234;color:#fff!important;-webkit-text-fill-color:#fff}
 .baby-menu-hero>div{position:relative;z-index:1}.baby-menu-hero:after{background:linear-gradient(90deg,var(--menu-paper),transparent 75%)!important}
 .baby-menu-hero.baby-page-hero>img{opacity:0}.baby-menu-hero.baby-page-hero.is-ready>img{opacity:1;transition:opacity .25s ease}
+/* 게시판 글이 들어오기 전의 기본 문구가 먼저 보였다 바뀌지 않게, 사진과 함께 나타난다 (메뉴는 그대로 보임) */
+.baby-menu-hero.baby-page-hero:not(.is-ready)>div>small,.baby-menu-hero.baby-page-hero:not(.is-ready)>div>h1,.baby-menu-hero.baby-page-hero:not(.is-ready)>div>p{visibility:hidden}
 @media(max-width:767px){.baby-menu-hero.baby-page-hero{min-height:540px;padding:28px 22px 255px}.baby-menu-hero.baby-page-hero>img{height:250px;top:auto;bottom:0;object-position:85% center}.baby-menu-hero.baby-page-hero:after{inset:auto 0 195px;height:65px;background:linear-gradient(var(--menu-paper),transparent)!important}.baby-menu-hero.baby-page-hero h1{font-size:35px;letter-spacing:-1.5px;margin:16px 0}.baby-menu-hero.baby-page-hero nav{gap:6px;margin-top:18px}.baby-menu-hero.baby-page-hero nav a{padding:7px 10px;font-size:11px}}
 html.st-sale-on #contents .sl-cp__logo{filter:none!important}
 html.st-sale-on #contents .sl-cp__btn{background:#304234!important}

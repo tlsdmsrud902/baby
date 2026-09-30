@@ -40,7 +40,10 @@
   hero.dataset.collection=key;img.alt=data[1];hero.querySelector('small').textContent=data[2];hero.querySelector('h1').innerHTML=data[3];hero.querySelector('p').innerHTML=data[4];
   img.addEventListener('load',reveal,{once:true});img.addEventListener('error',reveal,{once:true});img.src=/^(https?:)?\/\/|^\//.test(data[0])?data[0]:'/SkinImg/baby/'+data[0];if(img.complete&&img.naturalWidth)reveal();
  }
- if(window.BABYANG_CMS)window.BABYANG_CMS.ready(fill,1200);else fill();
+ // 게시판 글(편집 모드 · 저장 직후는 새로 읽느라 2~3초)이 들어온 뒤 그린다. 늦게 들어오거나 바뀌면 다시 그린다.
+ var painted='';
+ function paint(){var sig=JSON.stringify(banners[key]||banners.all);if(sig===painted)return;painted=sig;fill();}
+ if(window.BABYANG_CMS){window.BABYANG_CMS.ready(paint,6000);document.addEventListener('babyang:cms',paint);}else paint();
  var cur=hero.querySelector('[data-baby-menu="'+key+'"]');if(cur)cur.setAttribute('aria-current','page');
  var form=document.querySelector('.baby-list-search');if(form&&list)form.hidden=false;
 }());

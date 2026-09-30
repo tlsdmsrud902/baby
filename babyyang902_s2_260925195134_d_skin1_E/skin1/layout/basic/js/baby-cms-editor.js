@@ -218,6 +218,15 @@
       original = parseDoc(d.html);
       if (subject && isWrite) subject.value = d.subject;
     }
+    // 이미 저장된 글에는 나중에 생긴 안내(「칸을 늘리려면」·「최대 N장」)나 번호 칸이 없다 → 지금 화면의 초안에서 보충한다
+    if (d && d.html) {
+      var fresh = parseDoc(d.html), hasNote = {};
+      original.forEach(function (b) { if (b.type === 'note') hasNote[b.text] = 1; });
+      var addNotes = fresh.filter(function (b) { return b.type === 'note' && !hasNote[b.text] && /칸을 늘리려면|최대\s*\d+\s*[장칸개]/.test(b.text); });
+      if (addNotes.length) original = addNotes.concat(original);
+      var isMark = function (b) { return b.type === 'marker'; };
+      if (!original.some(isMark) && fresh.some(isMark)) original = original.concat(fresh.slice(fresh.findIndex(isMark)).filter(function (b) { return b.type !== 'note'; }));
+    }
     if (!hasFields(original)) return; // 화면 관리 형식의 글이 아니면 원래 편집기 그대로
     if (subject) { subject.readOnly = true; subject.title = '이 제목으로 메인 화면의 영역을 찾아요. 바꾸지 마세요.'; }
     backup(name, serialize(original));
@@ -226,6 +235,9 @@
     var model = clone(original), orig = {}, history = [clone(model)], pos = 0, native = false, syncT = null, pushT = null;
     original.forEach(function (b) { orig[b.id] = b.type === 'img' ? b.src : b.value; });
     var grow = original.some(function (b) { return b.type === 'note' && /칸을 늘리려면/.test(b.text); });
+    // 안내문의 「최대 N장」 : 그 수가 되면 [복사해서 추가]를 막는다
+    var maxItems = 0;
+    original.forEach(function (b) { var mm = b.type === 'note' && b.text.match(/최대\s*(\d+)\s*[장칸개]/); if (mm) maxItems = +mm[1]; });
     var notice = {}; // 사진 칸 아래에 잠깐 보여 줄 안내 (칸 id → 문구)
 
     var root = el('div', 'pcms');
@@ -357,6 +369,7 @@
         [['↑', -1, '위로'], ['↓', 1, '아래로'], ['복사해서 추가', 0, ''], ['삭제', null, '']].forEach(function (a) {
           var bt = el('button', '', a[0]); bt.type = 'button'; if (a[2]) bt.title = a[2];
           if ((a[1] === -1 && idx === 0) || (a[1] === 1 && idx === count - 1) || (a[1] === null && count <= 1)) bt.disabled = true;
+          if (a[1] === 0 && maxItems && count >= maxItems) { bt.disabled = true; bt.title = '최대 ' + maxItems + '개까지예요'; }
           bt.addEventListener('click', function () { itemAction(idx, a[1]); });
           h.appendChild(bt);
         });

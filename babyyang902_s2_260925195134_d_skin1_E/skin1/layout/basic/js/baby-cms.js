@@ -18,7 +18,10 @@
   var TTL = (CFG.cacheMinutes != null ? Number(CFG.cacheMinutes) : 10) * 60000;
   var PREFIX = CFG.titlePrefix || '[메인 화면]';
   // 페이지마다 영역이 달라 기억도 페이지별로 (메인 / 세일 / 그 밖의 경로)
-  var PAGE_KEY = /\/product\/list\.html/.test(location.pathname) ? 'list' + ((location.search.match(/[?&]cate_no=(\d+)/) || [])[1] || '') : (location.pathname.replace(/\/index\.html$/, '/') || '/');
+  // 목록·검색·게시판(세일 분류 제외)은 맨 위 큰 배너만 같이 쓰므로 기억도 하나('sub')로 — 분류를 옮길 때마다 게시판을 새로 읽지 않게
+  var CATE = (location.search.match(/[?&]cate_no=(\d+)/) || location.pathname.match(/^\/category\/[^\/]+\/(\d+)/) || [])[1] || '';
+  var HERO_PAGE = /^\/(product\/(list|search)\.html|category\/|board\/)/.test(location.pathname) && CATE !== String((SC.sale || {}).categoryNo || 27);
+  var PAGE_KEY = HERO_PAGE ? 'sub' : /\/product\/list\.html/.test(location.pathname) ? 'list' + CATE : (location.pathname.replace(/\/index\.html$/, '/') || '/');
   var CACHE_KEY = 'babyang-cms-v2-' + BOARD + '-' + PAGE_KEY, DRAFT_KEY = 'babyang-cms-draft';
   var html = document.documentElement;
   var qs = location.search;
@@ -402,6 +405,42 @@
     };
   }
   function saleObj(key) { return function () { var s = SC.sale = SC.sale || {}; return (s[key] = s[key] || {}); }; }
+  /* 세일 쿠폰 카드 앞면 사진 3장 : 1~3번 칸 → SC.sale.coupon.cards[i] (비면 product/list.html 의 기본 사진) */
+  var COUPON_CARDS = ['card-newborn.webp', 'card-toddler.webp', 'sq-bunny.webp'];
+  function withCards(ad) {
+    return {
+      labels: ad.labels,
+      draft: function () {
+        var d = ad.draft(), cards = saleObj('coupon')().cards || [];
+        d.items = COUPON_CARDS.map(function (f, i) { return { label: '카드 앞면 사진', img: cards[i] || heroImg(f), size: [1086, 1448], fields: [] }; });
+        return d;
+      },
+      apply: function (data) {
+        ad.apply(data);
+        var o = saleObj('coupon')(), cards = (o.cards || []).slice();
+        data.items.forEach(function (it, i) { if (it && it.imgs[0] && i < COUPON_CARDS.length) cards[i] = it.imgs[0]; });
+        o.cards = cards;
+      }
+    };
+  }
+  var POPUP_MAX = 5;
+  /* 카카오톡 채널 : 주소·아이디 무엇을 넣어도 https://pf.kakao.com/_아이디 로 맞춘다 */
+  var KAKAO_LABEL = '카카오톡 채널 주소', KAKAO_KEY = 'babyang-cms-kakao';
+  function kakaoNormalize(v) {
+    v = trim(v);
+    if (!v) return { url: '', id: '' };
+    if (/open\.kakao\.com/i.test(v)) return { error: 'open' };
+    var chat = /\/chat\/?$/i.test(v), m = v.match(/pf\.kakao\.com\/(_?[A-Za-z0-9]+)/i) || v.match(/^@?(_?[A-Za-z0-9]{3,})$/);
+    if (!m) return { error: 'format' };
+    var id = m[1].charAt(0) === '_' ? m[1] : '_' + m[1];
+    return { id: id, url: 'https://pf.kakao.com/' + id + (chat ? '/chat' : '') };
+  }
+  function kakaoUrl() { var f = SC.floating || {}; return f.kakao || lsGet(KAKAO_KEY) || ''; }
+  function setKakao(url) {
+    (SC.floating = SC.floating || {}).kakao = url;
+    try { if (url) store('localStorage').setItem(KAKAO_KEY, JSON.stringify(url)); else store('localStorage').removeItem(KAKAO_KEY); } catch (e) {}
+    document.querySelectorAll('[data-s9="kakao"]').forEach(function (a) { a.href = url || 'https://pf.kakao.com/'; a.toggleAttribute('data-kakao-set', !!url); });
+  }
   /* 상품 목록·검색·게시판 맨 위 큰 배너 (baby/submenu-hero.html 의 window.BABYANG_MENU_HERO) */
   var HERO_KEYS = [['all', '전체상품'], ['newborn', '신생아 분류'], ['toddler', '걸음마 아기 분류'], ['outing', '외출/나들이 분류'], ['review', '리뷰 게시판'], ['notice', '공지사항 게시판'], ['faq', '자주묻는질문 게시판'], ['qna', '상품문의 게시판']];
   var HERO_FIELDS = [['작은 제목', 2], ['제목', 3], ['설명', 4], ['사진 설명', 1]];
@@ -442,17 +481,19 @@
     saleTimer: configAdapter(saleObj('timer'), [
       ['보이기', 'enabled', 'bool'], ['문구', 'label'], ['마감 시각', 'endAt'], ['끝났을 때 문구', 'endedText'], ['배경색', 'bg'], ['글자색', 'fg']
     ], '마감 시각은 한국시간 「2026-10-31 23:59」처럼 써요. 색은 #색코드(예: #e11d48)이고, 비우면 기본 색이에요.'),
-    saleCoupon: configAdapter(saleObj('coupon'), [
+    saleCoupon: withCards(configAdapter(saleObj('coupon'), [
       ['보이기', 'enabled', 'bool'], ['영문 작은 글', 'eyebrow'], ['제목', 'title'], ['제목 강조 단어', 'titleHl'], ['리본 문구', 'kicker'],
       ['말풍선', 'bubble'], ['말풍선 강조 단어', 'bubbleEm'], ['남은 쿠폰 제목', 'stockTitle'], ['남은 쿠폰 안내', 'stockNote'],
       ['유의사항 제목', 'notesTitle'], ['유의사항', 'notes', 'lines']
-    ], '쿠폰 번호·수량·할인율은 관리자 › 프로모션 › 쿠폰과 store-content.js 의 sale.coupon 에서 정해요. 여기서는 화면 글자만 바꿔요. 유의사항은 한 줄에 하나씩, {period}·{usecon} 은 쿠폰의 사용기간·사용조건으로 자동으로 바뀌어요.'),
+    ], '쿠폰 번호·수량·할인율은 관리자 › 프로모션 › 쿠폰과 store-content.js 의 sale.coupon 에서 정해요. 여기서는 화면 글자만 바꿔요. 유의사항은 한 줄에 하나씩, {period}·{usecon} 은 쿠폰의 사용기간·사용조건으로 자동으로 바뀌어요. 1~3번은 카드 앞면 사진이에요.')),
     popup: {
       draft: function () {
         var c = SC.popup || {}, s = c.slides || [];
         return {
+          note: ['팝업은 최대 ' + POPUP_MAX + '장까지 넣을 수 있어요. 칸을 늘리려면 번호 칸의 [복사해서 추가], 줄이려면 [삭제]를 누르세요.',
+            '마감 시각을 적으면(예: 2026-10-31 23:59) 그 장에 남은 시간 타이머가 붙어요. 비우면 타이머 없는 팝업이에요.'],
           fields: [['보이기', c.enabled === false ? '아니오' : '예'], ['넘김 간격(초)', String(c.interval != null ? c.interval : 4)]],
-          items: s.map(function (x) {
+          items: s.slice(0, POPUP_MAX).map(function (x) {
             return { img: x.image, fields: [['배지', x.badge], ['작은 글', x.kicker], ['제목', x.title], ['설명', x.text], ['버튼', x.button], ['링크', x.link], ['마감 시각', x.type === 'timer' ? (x.endAt || (SC.sale && SC.sale.timer && SC.sale.timer.endAt) || '') : '']] };
           })
         };
@@ -461,7 +502,7 @@
         var c = SC.popup = SC.popup || {}, f = data.fields;
         if (f[norm('보이기')] != null) c.enabled = !isOff(f[norm('보이기')]);
         if (f[norm('넘김 간격(초)')] != null && !isNaN(parseFloat(f[norm('넘김 간격(초)')]))) c.interval = parseFloat(f[norm('넘김 간격(초)')]);
-        var list = data.items.filter(Boolean);
+        var list = data.items.filter(Boolean).slice(0, POPUP_MAX);
         if (!list.length) return;
         var old = c.slides || [];
         c.slides = list.map(function (it, i) {
@@ -473,6 +514,21 @@
           if (g('마감 시각') != null) { var e = trim(g('마감 시각')); s.type = e ? 'timer' : 'normal'; s.endAt = e; }
           return s;
         });
+      }
+    },
+    /* 오른쪽 아래 노란 카카오톡 상담 버튼 (layout.html 이 화면 관리 영역이 있는 페이지에서 data-cms 를 붙인다) */
+    kakao: {
+      labels: [KAKAO_LABEL],
+      draft: function () {
+        return {
+          note: '오른쪽 아래 노란 카카오톡 버튼을 누르면 이 채널로 가요. 주소 전체(http://pf.kakao.com/_xxxx)나 아이디(_xxxx)를 써요. 편집 모드의 [💬 카카오톡 상담 연결]에서 쉽게 바꿀 수 있어요.',
+          fields: [[KAKAO_LABEL, kakaoUrl()]], items: []
+        };
+      },
+      apply: function (data) {
+        var v = data.fields[norm(KAKAO_LABEL)];
+        if (v == null) return;
+        setKakao(kakaoNormalize(v).url);
       }
     }
   };
@@ -506,7 +562,13 @@
 
   var state = { map: null, applied: false, waiters: [], orderMoved: false, smooth: false, hold: false };
   // 가림 걷기. state.hold 가 켜져 있으면(게시판을 아직 읽는 중) 걷지 않는다.
-  function unwait(force) { if (force) state.hold = false; if (!state.hold) html.classList.remove('cms-wait'); }
+  // 억지로 걷을 때(최대 6초 안전장치·읽기 실패)는 기다리던 코드(배너·팝업 등)도 그때 그린다
+  function unwait(force) {
+    if (force) state.hold = false;
+    if (state.hold) return;
+    html.classList.remove('cms-wait');
+    if (force) { var w = state.waiters; state.waiters = []; w.forEach(function (fn) { try { fn(); } catch (e) {} }); }
+  }
   function sections() { return Array.from(document.querySelectorAll('[data-cms]')); }
   function names() { return sections().map(function (s) { return s.getAttribute('data-cms'); }).concat(orderName() ? [orderName()] : []).sort(function (a, b) { return norm(b).length - norm(a).length; }); }
   function knownLabels(sec) {
@@ -614,8 +676,7 @@
         if (it.img) body.push(sizeNote(it.size || [1000, 1000]) + '<p><img src="' + esc(absUrl(it.img)) + '" alt=""></p>');
         it.fields.forEach(function (f) { body.push(line(f[0], f[1] || '')); });
       });
-      if (d.note) head.push('<p>※ ' + esc(d.note) + '</p>');
-      else if (d.items.length) body.push('<p>※ 마감 시각을 적으면(예: 2026-10-31 23:59) 그 장에 남은 시간 타이머가 붙어요. 비우면 타이머 없는 팝업이에요.</p>');
+      [].concat(d.note || []).forEach(function (n) { head.push('<p>※ ' + esc(n) + '</p>'); });
     } else {
       body = body.concat(draftScope(sec, sec));
       var gs = groups(sec), n = gs.reduce(function (m, g) { return Math.max(m, g.length); }, 0);
@@ -658,6 +719,22 @@
     + '.cms-pop-btn{position:absolute;z-index:5;left:12px;top:12px}'
     + '.cms-img-warn{outline:4px solid #e5484d!important;outline-offset:-4px}'
     + '.cms-edit [data-cms-spots] .cz-look__media{cursor:crosshair}'
+    // 카카오톡 상담 연결 창
+    + '.cms-edit .s9-float__btn--kakao[data-cms]{outline-offset:2px;overflow:visible}'
+    + '.cms-edit .s9-float__btn--kakao[data-cms]::after{content:"✏️ 눌러서 연결 설정";position:absolute;right:calc(100% + 10px);top:50%;transform:translateY(-50%);padding:6px 10px;border-radius:999px;background:#1f1d1a;color:#fff;font:700 12px/1.2 Pretendard,system-ui,sans-serif;white-space:nowrap;pointer-events:none;box-shadow:0 4px 12px rgba(0,0,0,.25)}'
+    + '.cms-kk{position:fixed;z-index:10003;inset:0;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(20,16,14,.55)}'
+    + '.cms-kk__card{position:relative;width:min(560px,100%);max-height:calc(100vh - 32px);overflow:auto;box-sizing:border-box;padding:24px 22px 20px;border-radius:18px;background:#fff;color:#2b2320;font:15px/1.6 Pretendard,"Malgun Gothic",system-ui,sans-serif;text-align:left;box-shadow:0 20px 50px rgba(0,0,0,.35)}'
+    + '.cms-kk__card *{box-sizing:border-box}.cms-kk h3{margin:0 0 8px;font-size:20px;color:#2b2320}.cms-kk a{color:#c2410c;text-decoration:underline}'
+    + '.cms-kk__x{position:absolute;top:12px;right:12px;width:36px;height:36px;border:0;border-radius:50%;background:#f3ece6;font:700 16px/1 system-ui;cursor:pointer}'
+    + '.cms-kk__lead{margin:0 0 10px}.cms-kk__now{margin:0 0 14px;padding:10px 12px;border-radius:10px;font-weight:700;font-size:14px;word-break:break-all}.cms-kk__now.is-on{background:#e8f6ec;color:#1a7f37}.cms-kk__now.is-off{background:#f6f1ec;color:#7a6255}'
+    + '.cms-kk__steps{margin:0 0 12px;padding-left:20px}.cms-kk__steps li{margin:0 0 12px;font-size:14px}'
+    + '.cms-kk__in{display:block;width:100%;margin-top:6px;padding:12px 14px;border:1.5px solid #d9c7bb;border-radius:12px;font:16px/1.4 inherit;color:#2b2320;background:#fff}.cms-kk__in:focus{outline:0;border-color:#ff5a36;box-shadow:0 0 0 4px rgba(255,90,54,.15)}'
+    + '.cms-kk__chk{display:flex;gap:6px;align-items:center;margin-top:8px;font-size:13px;cursor:pointer}'
+    + '.cms-kk__out{margin-top:8px;font-size:14px;word-break:break-all}.cms-kk__out.is-ok{color:#1a7f37}.cms-kk__out.is-bad{color:#b42318;font-weight:700}'
+    + '.cms-kk details{margin:6px 0;padding:8px 12px;border-radius:10px;background:#faf6f2;font-size:14px}.cms-kk summary{cursor:pointer;font-weight:700}.cms-kk details p,.cms-kk details ul{margin:8px 0 2px}.cms-kk details li{margin:4px 0 4px 16px}'
+    + '.cms-kk__open-note{margin:10px 0 0;font-size:13px;color:#8a7568}'
+    + '.cms-kk__btns{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;margin-top:16px}.cms-kk__btns button{height:44px;padding:0 18px;border:1px solid #d9c7bb;border-radius:12px;background:#fff;color:#2b2320;font:700 15px/1 inherit;cursor:pointer}'
+    + '.cms-kk__btns button:disabled{opacity:.5;cursor:default}.cms-kk__btns .cms-kk__save{background:#fee500;border-color:#fee500;color:#191919}.cms-kk__btns .cms-kk__off{margin-right:auto;color:#b42318}'
     + '.cms-toast{position:fixed;z-index:10001;left:50%;top:18px;transform:translateX(-50%);padding:10px 16px;border-radius:12px;background:#1f1d1a;color:#fff;font:600 14px/1.4 Pretendard,system-ui,sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.3)}';
   function toast(msg) {
     var t = document.querySelector('.cms-toast') || document.body.appendChild(document.createElement('div'));
@@ -738,10 +815,57 @@
         box.querySelector('[data-dir="1"]').disabled = i === list.length - 1;
       });
     }
+    /* 새 창 없이 저장 : 보이지 않는 iframe 에 글쓰기/수정 화면을 열고, 편집기의 자동 저장(autosave 초안)이 끝나
+       iframe 이 write/modify 화면을 벗어나면 성공. 다른 주소(카페24 보안 확인 등)로 가면 주소를 못 읽으므로 실패로 본다. 한 번에 하나만. */
+    var saving = false;
+    function silentSave(name, d, done) {
+      if (saving) { toast('앞의 저장이 아직 진행 중이에요. 끝나면 다시 눌러 주세요.'); return; }
+      saving = true;
+      var post = state.map && state.map[name], all = lsGet(DRAFT_KEY) || {}, cms = '&cms=' + encodeURIComponent(name);
+      all[name] = { subject: d.subject, html: d.html, t: Date.now(), use: true, autosave: true };
+      lsSet(DRAFT_KEY, all);
+      var f = document.createElement('iframe'), loads = 0, ended = false, timer;
+      f.setAttribute('data-cms-silent', ''); f.setAttribute('aria-hidden', 'true'); f.tabIndex = -1;
+      // display:none 이면 편집기가 켜지지 않는다 → 화면 밖 + 투명
+      f.style.cssText = 'position:fixed;left:-3000px;top:0;width:1200px;height:900px;opacity:0;pointer-events:none;border:0';
+      f.src = post ? '/board/free/modify.html?board_act=edit&no=' + post.no + '&board_no=' + BOARD + cms : '/board/free/write.html?board_no=' + BOARD + cms;
+      function finish(ok, why) {
+        if (ended) return;
+        ended = true; saving = false; clearTimeout(timer);
+        setTimeout(function () { f.remove(); }, 300);
+        if (ok) {
+          // 처음 쓴 글이면 글 번호를 받아 두어 다음에는 수정한다
+          load([name], null, true).then(function (m) { if (m[name]) { state.map = state.map || {}; state.map[name] = m[name]; } }).catch(function () {});
+        } else {
+          var left = lsGet(DRAFT_KEY) || {}; if (left[name]) { delete left[name].autosave; lsSet(DRAFT_KEY, left); }
+        }
+        done(ok, why);
+      }
+      f.addEventListener('load', function () {
+        var path = '';
+        try { if (f.contentWindow.location.href === 'about:blank') return; path = f.contentWindow.location.pathname; } catch (e) {}
+        if (!path) { finish(false, 'blocked'); return; }
+        if (/\/board\/[^/]+\/(write|modify)\.html$/.test(path)) { loads++; return; }
+        finish(!!loads && !/challenge/.test(path), loads ? 'blocked' : 'login');
+      });
+      timer = setTimeout(function () { finish(false, 'timeout'); }, 25000);
+      document.body.appendChild(f);
+    }
+    function saveFail(why) {
+      alert(why === 'blocked' ? '카페24 보안 확인이 필요해 저장하지 못했어요.\n아래 막대의 [화면 관리 게시판 열기]를 눌러 새 창에서 보안 확인을 마친 뒤, 다시 저장해 주세요.'
+        : why === 'login' ? '저장하지 못했어요. 관리자(또는 글쓰기 권한이 있는 아이디)로 로그인했는지 확인해 주세요.'
+        : '저장이 끝나지 않았어요. 잠시 뒤 다시 눌러 주세요.\n계속 안 되면 [화면 관리 게시판 열기]에서 글을 직접 확인해 주세요.');
+    }
     // 순서를 옮기면 저장 버튼이 눈앞에 나온다 : 화면 위 가운데 떠 있는 버튼 + 각 섹션의 [순서] 옆 [저장] + 아래 막대
     function saveOrder() {
-      openPost(orderName(), orderDraft());
-      toast('새 창에서 순서를 저장하고 있어요. 저장이 끝나면 이 화면을 새로고침하세요.');
+      toast('섹션 순서를 저장하고 있어요… (10초쯤 걸려요)');
+      silentSave(orderName(), orderDraft(), function (ok, why) {
+        if (!ok) { saveFail(why); return; }
+        saveBtn.classList.remove('is-dirty'); saveBtn.textContent = '↕ 섹션 순서 저장';
+        if (floatBox) { floatBox.remove(); floatBox = null; }
+        units().forEach(function (u) { var s = u.__cmsOrder && u.__cmsOrder.querySelector('[data-save]'); if (s) s.hidden = true; });
+        alert('섹션 순서가 변경되었습니다.');
+      });
     }
     var saveBtn = document.createElement('button'); saveBtn.type = 'button'; saveBtn.className = 'cms-order-save'; saveBtn.textContent = '↕ 섹션 순서 저장';
     saveBtn.addEventListener('click', saveOrder);
@@ -766,12 +890,14 @@
       sections().forEach(function (sec) {
         // 세일 전용 영역은 세일 분류 페이지에서만 (다른 분류 목록에는 숨어 있는 틀일 뿐)
         if (sec.closest('#stSaleEvent, [data-st-sale]') && !html.classList.contains('st-sale-on')) return;
-        var b = sec.__cmsBtn, floating = sec.id === 'cz-pop';
+        var b = sec.__cmsBtn, floating = sec.id === 'cz-pop', isKakao = sec.getAttribute('data-cms-adapter') === 'kakao';
         if (!b) {
           b = sec.__cmsBtn = document.createElement('button'); b.type = 'button'; b.className = 'cms-btn';
-          b.addEventListener('click', function (e) { e.preventDefault(); e.stopPropagation(); open(sec); });
+          b.addEventListener('click', function (e) { e.preventDefault(); e.stopPropagation(); if (isKakao) kakaoDialog(sec); else open(sec); });
         }
-        b.innerHTML = label(sec);
+        b.innerHTML = isKakao ? '💬 카카오톡 상담 연결 <small>· ' + (kakaoUrl() ? '연결됨' : '연결 안 됨') + '</small>' : label(sec);
+        // 떠 있는 작은 버튼(카카오톡 등)은 영역 위가 아니라 편집 막대에 단다
+        if (sec.hasAttribute('data-cms-bar')) { b.style.position = 'static'; if (b.parentNode !== bar.lastChild) bar.lastChild.insertBefore(b, bar.lastChild.firstChild); return; }
         if (floating) {
           // 팝업 : 막대에 [고치기]·[열어 보기], 떠 있는 팝업 안에도 [고치기]
           b.style.position = 'static'; hiddenBox.appendChild(b);
@@ -824,6 +950,90 @@
       copyText(x + ' ' + y);
       toast('이 자리 : 가로 ' + x + '% · 세로 ' + y + '%  → "' + x + ' ' + y + '" 복사됨 (상품번호 뒤에 붙여 넣으세요)');
     }, true);
+    /* 카카오톡 상담 연결 창 : 처음 하는 사람 기준 — 하는 일 → 지금 상태 → 1 주소 복사 → 2 붙여 넣기 → 3 미리 열어 보고 저장 */
+    function kakaoDialog(sec) {
+      var old = document.querySelector('.cms-kk'); if (old) old.remove();
+      var cur = kakaoUrl(), curN = kakaoNormalize(cur);
+      var box = document.createElement('div'); box.className = 'cms-kk'; box.setAttribute('role', 'dialog'); box.setAttribute('aria-modal', 'true'); box.setAttribute('aria-label', '카카오톡 상담 연결');
+      box.innerHTML = '<div class="cms-kk__card">'
+        + '<button type="button" class="cms-kk__x" data-kk="close" aria-label="닫기">✕</button>'
+        + '<h3>💬 카카오톡 상담 연결</h3>'
+        + '<p class="cms-kk__lead">화면 오른쪽 아래 <b>노란 카카오톡 버튼</b>을 손님이 누르면, 여기서 연결한 <b>카카오톡 채널</b>의 1:1 채팅으로 바로 이어져요.</p>'
+        + '<p class="cms-kk__now ' + (cur ? 'is-on' : 'is-off') + '">' + (cur ? '지금 연결됨 · <a href="' + esc(cur) + '" target="_blank" rel="noopener">' + esc(cur) + '</a>' : '지금은 연결 안 됨 · 버튼을 누르면 카카오톡 채널 첫 화면으로 가요') + '</p>'
+        + '<ol class="cms-kk__steps">'
+        + '<li><b>1단계 · 채널 주소 복사하기</b><br>💻 컴퓨터 : <a href="https://business.kakao.com/" target="_blank" rel="noopener">카카오톡 채널 관리자센터</a> › 채널 › 채널 정보 › <b>채널 URL</b> 옆 [복사]<br>📱 휴대폰 : 카카오톡에서 내 채널 프로필 › [공유] › <b>URL 복사</b></li>'
+        + '<li><b>2단계 · 아래 칸에 붙여 넣기</b><input type="text" class="cms-kk__in" placeholder="예) http://pf.kakao.com/_TsIAE  또는  _TsIAE" autocomplete="off" spellcheck="false">'
+        + '<label class="cms-kk__chk"><input type="checkbox" class="cms-kk__chat" checked> 누르면 바로 <b>1:1 채팅</b> 화면으로 열기 (끄면 채널 소개 화면)</label>'
+        + '<div class="cms-kk__out" aria-live="polite"></div></li>'
+        + '<li><b>3단계 · [미리 열어 보기]로 확인한 뒤 [저장]</b></li></ol>'
+        + '<details><summary>카카오톡 채널이 뭔가요?</summary><p>가게 이름으로 된 카카오톡 계정이에요. 손님은 친구 추가 없이 채팅으로 문의하고, 사장님은 휴대폰 카카오톡이나 관리자센터에서 답해요. 개인 카카오톡 계정이 아니라 <b>채널</b>을 연결해야 해요.</p></details>'
+        + '<details><summary>채널이 아직 없어요 — 새로 만들기</summary><p><a href="https://business.kakao.com/" target="_blank" rel="noopener">카카오톡 채널 관리자센터</a>에 카카오 계정으로 로그인 › [새 채널 만들기] › 채널 이름(쇼핑몰 이름)·프로필 사진을 넣고 만들어요. 만든 뒤 아래 「꼭 켜 둘 설정」 두 가지를 켜고 1단계부터 하면 돼요.</p></details>'
+        + '<details><summary>꼭 켜 둘 설정 두 가지</summary><p>관리자센터 › 채널 › 채널 정보 에서<br>① <b>채널 공개</b> : 켜기 (꺼져 있으면 손님에게 「찾을 수 없는 채널」로 보여요)<br>② 채널 › <b>1:1 채팅</b> : 사용 켜기 (꺼져 있으면 채팅칸이 없어요)</p></details>'
+        + '<details><summary>잘 안 될 때</summary><ul>'
+        + '<li><b>「찾을 수 없는 채널」</b> : 채널 공개가 꺼져 있거나 주소 글자가 틀렸어요. 1단계에서 다시 복사해 붙여 넣으세요.</li>'
+        + '<li><b>채팅칸이 없어요</b> : 1:1 채팅이 꺼져 있어요 (위 「꼭 켜 둘 설정」).</li>'
+        + '<li><b>휴대폰에서 카카오톡 앱이 열려요</b> : 정상이에요. 휴대폰은 앱으로 채팅이 열려요.</li>'
+        + '<li><b>저장했는데 예전 곳으로 가요</b> : 이 화면을 새로고침해 보세요. 손님 화면은 몇 분 안에 바뀌어요.</li>'
+        + '<li><b>채널을 바꾸거나 끊고 싶어요</b> : 새 주소를 붙여 넣고 [저장], 끊으려면 [연결 해지].</li>'
+        + '<li><b>「보안 확인이 필요해」 안내가 나와요</b> : 아래 막대의 [화면 관리 게시판 열기]로 새 창을 열어 카페24 보안 확인을 마친 뒤 다시 저장하세요.</li>'
+        + '</ul></details>'
+        + '<p class="cms-kk__open-note">오픈채팅(open.kakao.com) 주소는 연결할 수 없어요. 카카오톡 <b>채널</b> 주소(pf.kakao.com)를 넣어 주세요.</p>'
+        + '<div class="cms-kk__btns">' + (cur ? '<button type="button" data-kk="off" class="cms-kk__off">연결 해지</button>' : '')
+        + '<button type="button" data-kk="try">미리 열어 보기</button><button type="button" data-kk="save" class="cms-kk__save">저장</button></div></div>';
+      document.body.appendChild(box);
+      var inp = box.querySelector('.cms-kk__in'), chat = box.querySelector('.cms-kk__chat'), out = box.querySelector('.cms-kk__out');
+      if (cur) { inp.value = cur.replace(/\/chat\/?$/, ''); chat.checked = /\/chat\/?$/.test(cur); }
+      function result() {
+        var v = trim(inp.value);
+        if (!v) return { empty: 1 };
+        var n = kakaoNormalize(v.replace(/\/chat\/?$/i, ''));
+        if (n.error) return n;
+        return { id: n.id, url: 'https://pf.kakao.com/' + n.id + (chat.checked ? '/chat' : '') };
+      }
+      function show() {
+        var r = result();
+        out.className = 'cms-kk__out';
+        if (r.empty) { out.textContent = ''; return r; }
+        if (r.error === 'open') { out.classList.add('is-bad'); out.textContent = '이건 오픈채팅 주소예요. 카카오톡 채널 주소(pf.kakao.com/_로 시작)를 넣어 주세요.'; return r; }
+        if (r.error) { out.classList.add('is-bad'); out.textContent = '주소 모양이 달라요. 「http://pf.kakao.com/_영문숫자」나 「_영문숫자」 모양으로 넣어 주세요.'; return r; }
+        out.classList.add('is-ok'); out.innerHTML = '연결될 주소 : <b>' + esc(r.url) + '</b>'; return r;
+      }
+      inp.addEventListener('input', show); chat.addEventListener('change', show); show();
+      function close() { box.remove(); document.removeEventListener('keydown', onKey); }
+      function onKey(e) { if (e.key === 'Escape') close(); }
+      document.addEventListener('keydown', onKey);
+      function save(url, btn) {
+        var prev = kakaoUrl();
+        (SC.floating = SC.floating || {}).kakao = url;
+        var d = draft(sec);
+        SC.floating.kakao = prev;
+        box.querySelectorAll('.cms-kk__btns button').forEach(function (x) { x.disabled = true; });
+        btn.textContent = '저장하는 중… (10초쯤)';
+        silentSave(sec.getAttribute('data-cms'), d, function (ok, why) {
+          if (!ok) { box.querySelectorAll('.cms-kk__btns button').forEach(function (x) { x.disabled = false; }); btn.textContent = url ? '저장' : '연결 해지'; saveFail(why); return; }
+          setKakao(url); close(); paint();
+          alert(url ? '카카오톡 채널(' + kakaoNormalize(url.replace(/\/chat\/?$/, '')).id + ')이 연결되었습니다.' : '카카오톡 채널 연결을 해지했어요.');
+        });
+      }
+      box.addEventListener('click', function (e) {
+        var a = e.target.closest('[data-kk]'), k = a && a.getAttribute('data-kk');
+        if (e.target === box || k === 'close') { close(); return; }
+        if (!k) return;
+        var r = show();
+        if (k === 'off') { if (confirm('카카오톡 채널 연결을 해지할까요?\n노란 버튼을 누르면 카카오톡 채널 첫 화면으로 가요.')) save('', a); return; }
+        if (r.empty) { out.className = 'cms-kk__out is-bad'; out.textContent = '2단계 칸에 채널 주소를 붙여 넣어 주세요.'; inp.focus(); return; }
+        if (r.error) { inp.focus(); return; }
+        if (k === 'try') window.open(r.url, '_blank', 'noopener');
+        if (k === 'save') save(r.url, a);
+      });
+      setTimeout(function () { inp.focus(); }, 50);
+    }
+    // 노란 카카오톡 버튼 자체 : 편집 모드에서는 채널로 가지 않고 설정 창을 연다 (사람들은 이 버튼부터 누른다)
+    document.addEventListener('click', function (e) {
+      var k = e.target.closest && e.target.closest('[data-s9="kakao"][data-cms]');
+      if (!k) return;
+      e.preventDefault(); e.stopPropagation(); kakaoDialog(k);
+    }, true);
     paint();
     document.addEventListener('babyang:cms', paint);
   }
@@ -832,12 +1042,15 @@
   var BOARD_PAGE = /\/board\/[^/]+\/(write|modify)\.html/.test(location.pathname) && BOARD && (qs.match(/[?&]board_no=(\d+)/) || [])[1] === String(BOARD);
   if (BOARD_PAGE) {
     // 카페24 자동 저장의 "작성중이던 글이 있습니다. 불러오시겠습니까?" 를 묻지 않는다 (항상 '아니오')
-    var nativeConfirm = window.confirm;
-    window.confirm = function (msg) { return /작성\s*중|임시\s*저장|불러오/.test(String(msg)) ? false : nativeConfirm.apply(window, arguments); };
+    var nativeConfirm = window.confirm, silent = false;
+    try { silent = !!(window.frameElement && window.frameElement.hasAttribute('data-cms-silent')); } catch (e) {}
+    window.confirm = function (msg) { return /작성\s*중|임시\s*저장|불러오/.test(String(msg)) ? false : silent ? true : nativeConfirm.apply(window, arguments); };
+    // 편집 모드의 새 창 없는 저장(보이지 않는 iframe) : 안내 창을 띄우지 않는다
+    if (silent) window.alert = function () {};
   }
   function loadEditor() {
     var s = document.createElement('script');
-    s.src = '/layout/basic/js/baby-cms-editor.js?v=' + (CFG.editorVersion || '20260929b');
+    s.src = '/layout/basic/js/baby-cms-editor.js?v=' + (CFG.editorVersion || '20260930c');
     document.body.appendChild(s);
   }
 
@@ -848,13 +1061,33 @@
     ready: function (fn, wait) {
       if (state.applied || !BOARD || !document.querySelector('[data-cms]')) { fn(); return; }
       var done = false, run = function () { if (!done) { done = true; fn(); } };
-      state.waiters.push(run); setTimeout(run, wait || 800);
+      // 게시판을 읽는 중(state.hold)이면 기본값으로 먼저 그리지 않는다 (다 읽거나 안전장치가 걷을 때 그린다)
+      state.waiters.push(run); setTimeout(function () { if (!state.hold) run(); }, wait || 800);
     },
+    // 편집 모드도 기억한 내용을 먼저 넣는다 (최신 글은 뒤에서 다시 읽고, 달라지면 다시 그린다)
     applyCached: function () {
-      if (state.applied || !BOARD || EDIT) return;
+      if (state.applied || !BOARD) return;
       var c = lsGet(CACHE_KEY);
       if (c && c.map) applyAll(c.map);
     },
+    holding: function () { return state.hold; },
+    // 배너처럼 본문 중간의 스크립트가 그리는 영역 : 그 코드가 실행되는 순간 기억한 내용을 바로 넣는다 (DOMContentLoaded 를 기다리지 않게)
+    applyCachedSection: function (sec) {
+      if (!BOARD || state.hold || state.applied) return false;
+      var c = lsGet(CACHE_KEY);
+      if (!c || !c.map) return false;
+      var post = c.map[sec.getAttribute('data-cms')], ad = ADAPTERS[sec.getAttribute('data-cms-adapter')];
+      if (post) { try { var data = parse(post.content, knownLabels(sec)); if (ad) ad.apply(data); else applySection(sec, data); } catch (e) { return false; } }
+      return true;
+    },
+    // 영역이 없는 페이지(상품 상세 등)에서 필요할 때만 글 하나의 값을 읽는다 (예: 카카오톡 채널 주소)
+    fetchField: function (name, label) {
+      if (!BOARD) return Promise.resolve('');
+      return load([name], null, true).then(function (map) {
+        return map[name] ? (parse(map[name].content, (function () { var k = {}; k[norm(label)] = 1; return k; }())).fields[norm(label)] || '') : '';
+      }).catch(function () { return ''; });
+    },
+    kakao: kakaoNormalize,
     parse: parse, draft: draft, applyAll: applyAll,
     prefix: PREFIX, draftKey: DRAFT_KEY, sizeWarn: sizeWarn, lsGet: lsGet, lsSet: lsSet, esc: esc, product: product
   };
@@ -879,19 +1112,21 @@
     if (BOARD_PAGE) loadEditor();
   }
   // 바꿀 글자·사진은 게시판 내용이 들어갈 때까지 가려 수정 전 기본값이 번쩍이지 않게 한다
-  //  · 편집 모드 · 저장 직후(캐시 없음) · 캐시가 오래됨 → 게시판을 다 읽을 때까지 붙잡는다 (최대 6초)
-  //  · 그 밖에는 캐시를 넣는 즉시 걷힌다 (최대 1.2초)
-  var salePage = /\/product\/list\.html/.test(location.pathname) && (qs.match(/[?&]cate_no=(\d+)/) || [])[1] === String((SC.sale || {}).categoryNo || 27);
-  if (BOARD && (/^\/(index\.html)?$/.test(location.pathname) || salePage)) {
+  //  · 저장 직후(캐시 없음) · 캐시가 오래됨 → 게시판을 다 읽을 때까지 붙잡는다 (최대 6초)
+  //  · 그 밖에는 캐시를 넣는 즉시 걷힌다 (최대 1.2초). 편집 모드도 캐시를 먼저 쓴다
+  //  · 목록·검색·게시판은 맨 위 큰 배너만 가린다
+  var salePage = /\/product\/list\.html/.test(location.pathname) && CATE === String((SC.sale || {}).categoryNo || 27);
+  if (BOARD && (/^\/(index\.html)?$/.test(location.pathname) || salePage || HERO_PAGE)) {
     html.classList.add('cms-wait');
     var cached = lsGet(CACHE_KEY);
-    state.hold = EDIT || !(cached && cached.map) || Date.now() - cached.t >= TTL;
+    state.hold = !(cached && cached.map) || Date.now() - cached.t >= TTL;
     setTimeout(function () { unwait(true); }, state.hold ? 6000 : 1200);
   }
   // 영역 숨기기·첫 방문 가림 규칙 (메인·세일 등 어느 페이지에서나)
   if (BOARD && document.head) {
     var cmsStyle = document.createElement('style');
-    cmsStyle.textContent = 'html:not(.cms-edit) .cms-off{display:none!important}.cms-wait [data-cms] [data-cms-text],.cms-wait [data-cms] [data-cms-src],.cms-wait [data-cms] [data-cms-links],.cms-wait [data-cms][data-cms-text]{visibility:hidden}';
+    cmsStyle.textContent = 'html:not(.cms-edit) .cms-off{display:none!important}.cms-wait [data-cms] [data-cms-text],.cms-wait [data-cms] [data-cms-src],.cms-wait [data-cms] [data-cms-links],.cms-wait [data-cms][data-cms-text]{visibility:hidden}'
+      + '.cms-wait .baby-menu-hero:not(.is-filled)>img,.cms-wait .baby-menu-hero:not(.is-filled)>div>:not(nav){visibility:hidden}';
     document.head.appendChild(cmsStyle);
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();

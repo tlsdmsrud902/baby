@@ -1142,7 +1142,7 @@ function runCoupon() {
 	var cards = '';
 	for (var i = 0; i < 3; i++) {
 		cards += '<button type="button" class="sl-cp__card" data-i="' + i + '" aria-label="쿠폰 카드 ' + (i + 1) + '" disabled>'
-			+ '<span class="sl-cp__face sl-cp__front"><img class="sl-cp__art" src="/SkinImg/baby/'+['card-newborn','card-toddler','sq-bunny'][i]+'.webp" alt="'+['곰돌이 모자를 쓴 아기','토끼 인형을 안은 아이','토끼 모자를 쓴 아기'][i]+'"><span class="sl-cp__logo" role="img" aria-label="baby앙"><b>baby</b><em>앙</em></span><i>A LITTLE GIFT FOR YOU</i></span>'
+			+ '<span class="sl-cp__face sl-cp__front"><img class="sl-cp__art" src="'+esc((cfg.cards||[])[i]||'/SkinImg/baby/'+['card-newborn','card-toddler','sq-bunny'][i]+'.webp')+'" alt="'+['곰돌이 모자를 쓴 아기','토끼 인형을 안은 아이','토끼 모자를 쓴 아기'][i]+'"><span class="sl-cp__logo" role="img" aria-label="baby앙"><b>baby</b><em>앙</em></span><i>A LITTLE GIFT FOR YOU</i></span>'
 			+ '<span class="sl-cp__face sl-cp__back"><span class="sl-cp__logo sl-cp__logo--back" role="img" aria-label="baby앙"><b>baby</b><em>앙</em></span><strong class="sl-cp__pct">?</strong><span class="sl-cp__nm"></span></span></button>';
 	}
 	box.innerHTML = '<div class="sl-cp__in">'

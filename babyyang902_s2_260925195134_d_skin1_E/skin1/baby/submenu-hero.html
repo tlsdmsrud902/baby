@@ -34,16 +34,22 @@
   faq:['scene-reading.webp','소파에서 형과 함께 그림책을 보는 아기','GOOD TO KNOW','Questions?<br>We have answers.','주문 · 배송 · 교환 · 반품에 대해<br>자주 묻는 질문을 모았어요.'],
   qna:['scene-reading.webp','소파에서 형과 함께 그림책을 보는 아기','ASK US','Ask anything.<br>We are here to help.','상품에 대해 궁금한 점을 남겨 주세요.<br>꼼꼼히 확인하고 답변드릴게요.']
  },img=hero.querySelector('img');
+ var C=window.BABYANG_CMS;
+ // 분류별 배경색은 게시판 글과 상관없으므로 바로 넣는다 (기다리는 동안 기본색 → 분류색으로 바뀌지 않게)
+ hero.dataset.collection=key;
  function reveal(){hero.classList.add('is-ready')}
  function fill(){
-  var data=banners[key]||banners.all;
-  hero.dataset.collection=key;img.alt=data[1];hero.querySelector('small').textContent=data[2];hero.querySelector('h1').innerHTML=data[3];hero.querySelector('p').innerHTML=data[4];
-  img.addEventListener('load',reveal,{once:true});img.addEventListener('error',reveal,{once:true});img.src=/^(https?:)?\/\/|^\//.test(data[0])?data[0]:'/SkinImg/baby/'+data[0];if(img.complete&&img.naturalWidth)reveal();
+  var data=banners[key]||banners.all,src=/^(https?:)?\/\/|^\//.test(data[0])?data[0]:'/SkinImg/baby/'+data[0];
+  if(!C||!C.holding||!C.holding())hero.classList.add('is-filled');
+  img.alt=data[1];hero.querySelector('small').textContent=data[2];hero.querySelector('h1').innerHTML=data[3];hero.querySelector('p').innerHTML=data[4];
+  // 사진이 바뀌면 새 사진을 다 받은 뒤 보인다
+  if(img.getAttribute('src')!==src){hero.classList.remove('is-ready');img.addEventListener('load',reveal,{once:true});img.addEventListener('error',reveal,{once:true});img.src=src;}
+  if(img.complete&&img.naturalWidth)reveal();
  }
- // 게시판 글(편집 모드 · 저장 직후는 새로 읽느라 2~3초)이 들어온 뒤 그린다. 늦게 들어오거나 바뀌면 다시 그린다.
+ // 기억한 게시판 글이 있으면 이 코드가 실행되는 순간 바로 그리고, 없으면 게시판을 다 읽은 뒤 그린다. 늦게 들어오거나 바뀌면 다시 그린다.
  var painted='';
  function paint(){var sig=JSON.stringify(banners[key]||banners.all);if(sig===painted)return;painted=sig;fill();}
- if(window.BABYANG_CMS){window.BABYANG_CMS.ready(paint,6000);document.addEventListener('babyang:cms',paint);}else paint();
+ if(C){if(C.applyCachedSection&&C.applyCachedSection(hero))paint();C.ready(paint,1200);document.addEventListener('babyang:cms',paint);}else paint();
  var cur=hero.querySelector('[data-baby-menu="'+key+'"]');if(cur)cur.setAttribute('aria-current','page');
  var form=document.querySelector('.baby-list-search');if(form&&list)form.hidden=false;
 }());

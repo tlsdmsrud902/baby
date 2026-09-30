@@ -282,7 +282,14 @@
     if (el.getAttribute('src') === url) return el;
     el.removeAttribute('srcset');
     if (el.hasAttribute('data-cms-reset')) el.removeAttribute('style');
-    el.setAttribute('src', url);
+    if (state.smooth && el.tagName === 'IMG' && el.getAttribute('src')) {
+      var target = el, pre = new Image(), swapped = false;
+      var swap = function () { if (swapped) return; swapped = true; target.setAttribute('src', url); };
+      pre.onload = swap; pre.onerror = swap; setTimeout(swap, 3000);
+      pre.src = url;
+    } else {
+      el.setAttribute('src', url);
+    }
     el.setAttribute('data-cms-replaced', '');
     if (el.tagName === 'IMG' && el.closest('[data-cms-item]') && !el.hasAttribute('data-cms-keep-alt')) el.alt = '';
     // 장면 속 상품처럼 사진 비율로 칸 모양을 정하는 곳은 새 사진 비율을 따른다 (점 위치 % 가 사진에 맞게)
@@ -497,7 +504,9 @@
     placeUnits(want);
   }
 
-  var state = { map: null, applied: false, waiters: [], orderMoved: false };
+  var state = { map: null, applied: false, waiters: [], orderMoved: false, smooth: false, hold: false };
+  // 가림 걷기. state.hold 가 켜져 있으면(게시판을 아직 읽는 중) 걷지 않는다.
+  function unwait(force) { if (force) state.hold = false; if (!state.hold) html.classList.remove('cms-wait'); }
   function sections() { return Array.from(document.querySelectorAll('[data-cms]')); }
   function names() { return sections().map(function (s) { return s.getAttribute('data-cms'); }).concat(orderName() ? [orderName()] : []).sort(function (a, b) { return norm(b).length - norm(a).length; }); }
   function knownLabels(sec) {
@@ -513,6 +522,7 @@
   }
   function applyAll(map) {
     state.map = map;
+    state.smooth = state.applied;
     sections().forEach(function (sec) {
       var post = map[sec.getAttribute('data-cms')];
       sec.classList.toggle('cms-has-post', !!post);
@@ -526,7 +536,7 @@
       try { applyOrder(parse(map[on].content, { 순서: 1 }).fields[norm('순서')]); } catch (e) {}
     }
     state.applied = true;
-    html.classList.remove('cms-wait');
+    unwait();
     var w = state.waiters; state.waiters = [];
     w.forEach(function (fn) { try { fn(); } catch (e) {} });
     document.dispatchEvent(new CustomEvent('babyang:cms', { detail: map }));
@@ -860,20 +870,23 @@
         load(names(), c && c.map, reread).then(function (map) {
           var same = c && JSON.stringify(c.map) === JSON.stringify(map);
           lsSet(CACHE_KEY, { t: Date.now(), tb: reread ? Date.now() : c.tb, map: map });
-          if (!same || !state.applied || EDIT) { state.applied = false; applyAll(map); }
-        }).catch(function () { html.classList.remove('cms-wait'); });
-      }
-    }
+          state.hold = false;   // 다 읽었으니 이제 가림을 걷어도 된다
+          if (!same || !state.applied || EDIT) { state.applied = false; applyAll(map); } else unwait();
+        }).catch(function () { unwait(true); });
+      } else unwait(true);
+    } else unwait(true);
     if (EDIT && home) startEdit();
     if (BOARD_PAGE) loadEditor();
   }
-  // 바꿀 글자·사진은 게시판 내용(캐시 또는 새로 읽은 글)이 들어갈 때까지 가려 수정 전 기본값이 번쩍이지 않게 한다
-  //  · 캐시가 있으면 applyCached() 가 곧바로 걷어 낸다
-  //  · 캐시가 없거나(첫 방문 · 저장 직후) 편집 모드면 게시판을 다 읽은 뒤 걷어 낸다 — 게시판이 늦거나 막히면 최대 6초
+  // 바꿀 글자·사진은 게시판 내용이 들어갈 때까지 가려 수정 전 기본값이 번쩍이지 않게 한다
+  //  · 편집 모드 · 저장 직후(캐시 없음) · 캐시가 오래됨 → 게시판을 다 읽을 때까지 붙잡는다 (최대 6초)
+  //  · 그 밖에는 캐시를 넣는 즉시 걷힌다 (최대 1.2초)
   var salePage = /\/product\/list\.html/.test(location.pathname) && (qs.match(/[?&]cate_no=(\d+)/) || [])[1] === String((SC.sale || {}).categoryNo || 27);
   if (BOARD && (/^\/(index\.html)?$/.test(location.pathname) || salePage)) {
     html.classList.add('cms-wait');
-    setTimeout(function () { html.classList.remove('cms-wait'); }, 6000);
+    var cached = lsGet(CACHE_KEY);
+    state.hold = EDIT || !(cached && cached.map) || Date.now() - cached.t >= TTL;
+    setTimeout(function () { unwait(true); }, state.hold ? 6000 : 1200);
   }
   // 영역 숨기기·첫 방문 가림 규칙 (메인·세일 등 어느 페이지에서나)
   if (BOARD && document.head) {
